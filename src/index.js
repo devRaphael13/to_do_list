@@ -1,4 +1,4 @@
-function main(header, section) {
+function display(header, section) {
     const container = document.getElementById("container");
     const main = document.getElementById("main");
 
@@ -69,58 +69,67 @@ function projectHeader() {
                 <h2>Projects</h2>
             </div>
             <input type="search" name="project" id="projectSearch" placeholder="Search" />
-            <button>Create Project</button>
+            <button id="createProject">Create Project</button>
         </div>
         <p>Boost Your Productivity: Streamline Tasks into Projects! Here's Your list Projects</p>
     </div>
     `;
 }
 
-function projectElem() {
+function projectElem(name, description, date) {
     return `
      <div class="project">
         <div>
-            <h3>Green Haven</h3>
-            <p>12/08/2000</p>
+            <h3>${name}</h3>
+            <p>${date}</p>
         </div>
-        <p>Project integrates renewable energy, reduces waste, and builds green spaces to create healthier, eco-friendly cities.</p>
-        <div>
-            <div>
-                <svg width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        fill-rule="evenodd"
-                        d="M4.32 5.88a.6.6 0 0 0-.6.6v1.2a.6.6 0 0 0 .6.6h1.2a.6.6 0 0 0 .6-.6v-1.2a.6.6 0 0 0-.6-.6h-1.2Zm1.2.6h-1.2v1.2h1.2v-1.2Z"
-                        clip-rule="evenodd"></path>
-                    <path
-                        d="M7.92 7.08a.6.6 0 0 1 .6-.6h10.8a.6.6 0 1 1 0 1.2H8.52a.6.6 0 0 1-.6-.6Zm.6 4.2a.6.6 0 1 0 0 1.2h10.8a.6.6 0 1 0 0-1.2H8.52Zm0 4.8a.6.6 0 1 0 0 1.2h10.8a.6.6 0 1 0 0-1.2H8.52Z"></path>
-                    <path
-                        fill-rule="evenodd"
-                        d="M3.72 11.28a.6.6 0 0 1 .6-.6h1.2a.6.6 0 0 1 .6.6v1.2a.6.6 0 0 1-.6.6h-1.2a.6.6 0 0 1-.6-.6v-1.2Zm.6 0h1.2v1.2h-1.2v-1.2Zm0 4.2a.6.6 0 0 0-.6.6v1.2a.6.6 0 0 0 .6.6h1.2a.6.6 0 0 0 .6-.6v-1.2a.6.6 0 0 0-.6-.6h-1.2Zm1.2.6h-1.2v1.2h1.2v-1.2Z"
-                        clip-rule="evenodd"></path>
-                </svg>
-                <p>3</p>
-            </div>
-
-            <div>
-                <svg width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12.75 7.5v4.068l3.525 2.035a.75.75 0 0 1-.375 1.396.666.666 0 0 1-.375-.103l-3.9-2.25h-.019l-.037-.018-.028-.028-.029-.02-.028-.027-.018-.02c-.02-.008-.029-.027-.038-.037l-.019-.018-.018-.038-.02-.028-.018-.028a.047.047 0 0 1-.019-.038l-.018-.028c0-.01-.01-.018-.01-.037a.037.037 0 0 1-.01-.028l-.018-.038a.038.038 0 0 0-.01-.028c0-.019 0-.028-.009-.037v-.038c0-.019-.01-.028-.01-.037V7.499a.75.75 0 0 1 1.5 0Zm5.616-1.866a9.019 9.019 0 0 0-12.732 0l-.778.778-1.34-1.34a.75.75 0 0 0-.816-.17.769.769 0 0 0-.469.694v3.75a.75.75 0 0 0 .75.75h3.75a.75.75 0 0 0 .535-1.275l-1.35-1.35.778-.778a7.5 7.5 0 1 1 0 10.613.742.742 0 0 0-1.06 0 .75.75 0 0 0 0 1.06A9.002 9.002 0 1 0 18.366 5.633Z"></path>
-                </svg>
-                <p>1</p>
-            </div>
-            <div>
-                <svg width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 2.25C6.6 2.25 2.25 6.6 2.25 12S6.6 21.75 12 21.75s9.75-4.35 9.75-9.75c0-1.049-.14-2.095-.516-3.07l-1.218 1.195c.149.6.234 1.201.234 1.875A8.225 8.225 0 0 1 12 20.25 8.225 8.225 0 0 1 3.75 12 8.225 8.225 0 0 1 12 3.75c2.25 0 4.271.896 5.695 2.32l1.055-1.054C17.024 3.29 14.625 2.25 12 2.25Zm8.46 3.21L12 13.923 8.79 10.71l-1.08 1.078 3.75 3.75.54.516.54-.516 9-9-1.08-1.078Z"></path>
-                </svg>
-                <p>2</p>
-            </div>
-        </div>
+        <p>${description}</p>
     </div>
 `;
 }
 
 const section = document.getElementById("section");
-section.innerHTML = projectElem()
+display(projectHeader, section);
 
-main(projectHeader, section);
+section.innerHTML = projectElem("name", "description");
+function Project(name, description, date) {
+    this.id = Project.count;
+    Project.count++;
+    this.name = name;
+    this.description = description;
+    this.date = date;
+}
+Project.count = 0;
+
+function modalSetup() {
+    const cProjectBtn = document.getElementById("createProject");
+    const projectDialog = document.getElementById("project_dialog");
+    const create_project = document.getElementById("create_project_btn");
+    const cancel_project = document.getElementById("cancel_project_btn")
+
+    cProjectBtn.addEventListener("click", (e) => {
+        if (!projectDialog.open) projectDialog.showModal();
+    });
+
+    if (create_project) {
+        create_project.addEventListener("click", (e) => {
+            projectDialog.close();
+            e.preventDefault()
+            handleForm(Project, "name", "description", "date")
+        });
+    }
+
+    if (cancel_project) {
+        cancel_project.addEventListener("click", (e) => {
+            e.preventDefault()
+            projectDialog.close();
+        })
+    }
+}
+
+function handleForm(constructor, ...fields) {
+    const data = new FormData(document.forms.add_project)
+    const newObj = new constructor(...fields.map((elem) => data.get(elem)));
+}
+
+modalSetup();
