@@ -4,17 +4,18 @@ const section = document.getElementById("section");
 const storage = HandleLocalStorage();
 
 function display(header, db_name, func) {
-    const data = storage.get(db_name)
+    const data = storage.get(db_name);
     container.innerHTML = "";
     main.innerHtml = "";
-
-    section.innerHTML = data.map(func).join('')
-
+    
+    section.innerHTML = data.map(func).join("");
+    
     main.innerHTML = header();
     main.append(section);
-
+    
     container.innerHTML = aside();
     container.append(main);
+    asideBtn()
 }
 
 display(projectHeader, "project", projectElem);
@@ -33,7 +34,7 @@ function aside() {
                     <p>To-Do List</p>
                 </div>
 
-                <div>
+                <div id="projectBtn">
                     <svg width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
                             fill-rule="evenodd"
@@ -43,7 +44,7 @@ function aside() {
                     <p>Projects</p>
                 </div>
 
-                <div>
+                <div id="taskBtn">
                     <svg width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path
                             fill-rule="evenodd"
@@ -97,8 +98,10 @@ function projectHeader() {
     `;
 }
 
+function taskHeader() {}
+
 function projectElem(data) {
-    if (!data) return ""
+    if (!data) return "";
     return `
      <div class="project">
         <div>
@@ -109,6 +112,8 @@ function projectElem(data) {
     </div>
 `;
 }
+
+function taskElem() {}
 
 function Project(name, description, date) {
     this.id = Project.count;
@@ -136,8 +141,8 @@ Project.count = 0;
             projectDialog.close();
             e.preventDefault();
             handleForm(Project, "project", "name", "description", "date");
-            display(projectHeader, "project", projectElem)
-            modalSetup()
+            display(projectHeader, "project", projectElem);
+            modalSetup();
         });
     }
 
@@ -149,6 +154,13 @@ Project.count = 0;
     }
 })()
 
+function asideBtn() {
+    const projectBtn = document.getElementById("projectBtn");
+    const taskBtn = document.getElementById("taskBtn");
+    
+    projectBtn.addEventListener("click", (e) => display(projectHeader, "project", projectElem))
+    taskBtn.addEventListener("click", (e) => display(taskHeader, "task", taskElem))
+};
 
 // Local Storage and Form Handling
 
