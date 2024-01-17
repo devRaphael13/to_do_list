@@ -1,9 +1,14 @@
-function display(header, section) {
-    const container = document.getElementById("container");
-    const main = document.getElementById("main");
+const container = document.getElementById("container");
+const main = document.getElementById("main");
+const section = document.getElementById("section");
+const storage = HandleLocalStorage();
 
+function display(header, db_name, func) {
+    const data = storage.get(db_name)
     container.innerHTML = "";
     main.innerHtml = "";
+
+    section.innerHTML = data.map(func).join('')
 
     main.innerHTML = header();
     main.append(section);
@@ -11,6 +16,9 @@ function display(header, section) {
     container.innerHTML = aside();
     container.append(main);
 }
+
+display(projectHeader, "project", projectElem);
+
 function aside() {
     return `
     <aside>
@@ -72,26 +80,36 @@ function projectHeader() {
             <button id="createProject">Create Project</button>
         </div>
         <p>Boost Your Productivity: Streamline Tasks into Projects! Here's Your list Projects</p>
+    <dialog id="project_dialog" class="project__dialog">
+        <form action="." method="post"  id="add_project">
+            <div>
+                <input type="text" name="name" id="name" placeholder="Name of the Project...." />
+                <input type="date" name="date" id="date" placeholder="Date" />
+            </div>
+            <input type="text" name="description" id="description" placeholder="Short description" />
+            <div>
+                <button id="create_project_btn" class="cproject__btn">Create</button>
+                <button id="cancel_project_btn" class="cancel__project">Cancel</button>
+            </div>
+        </form>
+    </dialog>
     </div>
     `;
 }
 
-function projectElem(name, description, date) {
+function projectElem(data) {
+    if (!data) return ""
     return `
      <div class="project">
         <div>
-            <h3>${name}</h3>
-            <p>${date}</p>
+            <h3>${data.name}</h3>
+            <p>${data.date}</p>
         </div>
-        <p>${description}</p>
+        <p>${data.description}</p>
     </div>
 `;
 }
 
-const section = document.getElementById("section");
-display(projectHeader, section);
-
-section.innerHTML = projectElem("name", "description");
 function Project(name, description, date) {
     this.id = Project.count;
     Project.count++;
@@ -101,11 +119,13 @@ function Project(name, description, date) {
 }
 Project.count = 0;
 
-function modalSetup() {
+// Project Modal
+
+(function modalSetup() {
     const cProjectBtn = document.getElementById("createProject");
     const projectDialog = document.getElementById("project_dialog");
     const create_project = document.getElementById("create_project_btn");
-    const cancel_project = document.getElementById("cancel_project_btn")
+    const cancel_project = document.getElementById("cancel_project_btn");
 
     cProjectBtn.addEventListener("click", (e) => {
         if (!projectDialog.open) projectDialog.showModal();
@@ -114,22 +134,38 @@ function modalSetup() {
     if (create_project) {
         create_project.addEventListener("click", (e) => {
             projectDialog.close();
-            e.preventDefault()
-            handleForm(Project, "name", "description", "date")
+            e.preventDefault();
+            handleForm(Project, "project", "name", "description", "date");
+            display(projectHeader, "project", projectElem)
+            modalSetup()
         });
     }
 
     if (cancel_project) {
         cancel_project.addEventListener("click", (e) => {
-            e.preventDefault()
+            e.preventDefault();
             projectDialog.close();
-        })
+        });
     }
-}
+})()
 
-function handleForm(constructor, ...fields) {
-    const data = new FormData(document.forms.add_project)
+
+// Local Storage and Form Handling
+
+function handleForm(constructor, db, ...fields) {
+    const data = new FormData(document.forms.add_project);
     const newObj = new constructor(...fields.map((elem) => data.get(elem)));
+    storage.add(db, newObj);
 }
 
-modalSetup();
+function HandleLocalStorage() {
+    const add = (db_name, data) => {
+        let db = get(db_name);
+        db.push(data);
+        localStorage.setItem(db_name, JSON.stringify(db));
+    };
+
+    const get = (db_name) => JSON.parse(localStorage.getItem(db_name)) || [];
+
+    return { add, get };
+}
