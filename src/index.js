@@ -16,10 +16,22 @@ function display(header, db_name, elem, modal) {
     container.innerHTML = aside();
     container.append(main);
     asideBtn();
-    modal()
+    modal();
+    deleteSetup();
 }
 
-display(projectHeader, "project", projectElem, projectmodalSetup);
+display(projectHeader, "project", projectElem, projectModalSetup);
+
+function deleteSetup() {
+    const delElems = document.getElementsByClassName("delete");
+    for (elem of delElems) {
+        elem.addEventListener("click", (e) => {
+            let id = elem.dataset.id;
+            let db_name = elem.dataset.db;
+            del(id, db_name);
+        });
+    }
+}
 
 function aside() {
     return `
@@ -150,27 +162,48 @@ function projectElem(data) {
             <p>${data.date}</p>
         </div>
         <p>${data.description}</p>
-    </div>
+            <svg class="delete" data-db="project" data-id=${data.id} width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="m13.41 11.996 4.3-4.29a1.004 1.004 0 1 0-1.42-1.42l-4.29 4.3-4.29-4.3a1.004 1.004 0 0 0-1.42 1.42l4.3 4.29-4.3 4.29a.999.999 0 0 0 0 1.42 1 1 0 0 0 1.42 0l4.29-4.3 4.29 4.3a1.001 1.001 0 0 0 1.639-.325 1 1 0 0 0-.22-1.095l-4.3-4.29Z"></path>
+            </svg>
+        </div>
 `;
 }
 
 function taskElem(data) {
     if (!data) return "";
 
-    const project = storage.get("project").filter(item => item.id == data.project)[0]
+    const project = storage.get("project").filter((item) => item.id == data.project);
+    if (project.length < 1) {
+        del(data.id, "task");
+        return "";
+    }
+
     return `
     <div class="project">
         <div>
             <h3>${data.task}</h3>
             <p>${data.date}</p>
         </div>
-        <p>${project.name}</p>
+        <p>${project[0].name}</p>
+        <svg class="delete" data-db="task" data-id=${data.id} width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="m13.41 11.996 4.3-4.29a1.004 1.004 0 1 0-1.42-1.42l-4.29 4.3-4.29-4.3a1.004 1.004 0 0 0-1.42 1.42l4.3 4.29-4.3 4.29a.999.999 0 0 0 0 1.42 1 1 0 0 0 1.42 0l4.29-4.3 4.29 4.3a1.001 1.001 0 0 0 1.639-.325 1 1 0 0 0-.22-1.095l-4.3-4.29Z"></path>
+        </svg>
     </div>
     `;
 }
 
+function del(id, db_name) {
+    storage.pop(db_name, id);
+
+    if (db_name == "project") {
+        display(projectHeader, "project", projectElem, projectModalSetup);
+    } else {
+        display(taskHeader, "task", taskElem, taskModalSetup);
+    }
+}
+
 function Project(name, description, date) {
-    this.id = Date.now()
+    this.id = Date.now();
     this.name = name;
     this.description = description;
     this.date = date;
@@ -178,7 +211,7 @@ function Project(name, description, date) {
 
 // Project Modal
 
-function projectmodalSetup() {
+function projectModalSetup() {
     const cProjectBtn = document.getElementById("createProject");
     const projectDialog = document.getElementById("project_dialog");
     const create_project = document.getElementById("create_project_btn");
@@ -193,7 +226,7 @@ function projectmodalSetup() {
             projectDialog.close();
             e.preventDefault();
             handleForm(Project, "project", "name", "description", "date");
-            display(projectHeader, "project", projectElem, projectmodalSetup);
+            display(projectHeader, "project", projectElem, projectModalSetup);
         });
     }
 
@@ -206,9 +239,10 @@ function projectmodalSetup() {
 }
 
 function Task(task, date, project) {
-    this.task = task
-    this.date = date
-    this.project = project
+    this.id = Date.now();
+    this.task = task;
+    this.date = date;
+    this.project = project;
 }
 
 function taskModalSetup() {
@@ -216,20 +250,22 @@ function taskModalSetup() {
     const taskDialog = document.getElementById("task_dialog");
     const createTaskBtn = document.getElementById("create_task_btn");
     const cancelTaskBtn = document.getElementById("cancel_task_btn");
-    const select = document.getElementById("project_select")
+    const select = document.getElementById("project_select");
 
     createTask.addEventListener("click", (e) => {
         if (!taskDialog.open) taskDialog.showModal();
     });
 
     if (select) {
-        let projects = storage.get("project")
-        select.append(...projects.map((project) => {
-            const opt = document.createElement("option")
-            opt.value = project.id
-            opt.textContent = project.name
-            return opt
-        }))
+        let projects = storage.get("project");
+        select.append(
+            ...projects.map((project) => {
+                const opt = document.createElement("option");
+                opt.value = project.id;
+                opt.textContent = project.name;
+                return opt;
+            })
+        );
     }
     if (createTaskBtn) {
         createTaskBtn.addEventListener("click", (e) => {
@@ -252,7 +288,7 @@ function asideBtn() {
     const projectBtn = document.getElementById("projectBtn");
     const taskBtn = document.getElementById("taskBtn");
 
-    projectBtn.addEventListener("click", (e) => display(projectHeader, "project", projectElem, projectmodalSetup));
+    projectBtn.addEventListener("click", (e) => display(projectHeader, "project", projectElem, projectModalSetup));
     taskBtn.addEventListener("click", (e) => display(taskHeader, "task", taskElem, taskModalSetup));
 }
 
@@ -273,5 +309,12 @@ function HandleLocalStorage() {
 
     const get = (db_name) => JSON.parse(localStorage.getItem(db_name)) || [];
 
-    return { add, get };
+    const pop = (db_name, id) => {
+        let db = get(db_name);
+        if (db.length >= 1) {
+            db = localStorage.setItem(db_name, JSON.stringify(db.filter((item) => item.id != id)));
+        }
+    };
+
+    return { add, get, pop };
 }
