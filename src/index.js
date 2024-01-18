@@ -3,22 +3,23 @@ const main = document.getElementById("main");
 const section = document.getElementById("section");
 const storage = HandleLocalStorage();
 
-function display(header, db_name, func) {
+function display(header, db_name, elem, modal) {
     const data = storage.get(db_name);
     container.innerHTML = "";
     main.innerHtml = "";
-    
-    section.innerHTML = data.map(func).join("");
-    
+
+    section.innerHTML = data.map(elem).join("");
+
     main.innerHTML = header();
     main.append(section);
-    
+
     container.innerHTML = aside();
     container.append(main);
-    asideBtn()
+    asideBtn();
+    modal()
 }
 
-display(projectHeader, "project", projectElem);
+display(projectHeader, "project", projectElem, projectmodalSetup);
 
 function aside() {
     return `
@@ -98,7 +99,47 @@ function projectHeader() {
     `;
 }
 
-function taskHeader() {}
+function taskHeader() {
+    return `
+            <div>
+            <div class="header__div">
+                <div>
+                    <svg width="46" height="46" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            fill-rule="evenodd"
+                            d="M4.32 5.88a.6.6 0 0 0-.6.6v1.2a.6.6 0 0 0 .6.6h1.2a.6.6 0 0 0 .6-.6v-1.2a.6.6 0 0 0-.6-.6h-1.2Zm1.2.6h-1.2v1.2h1.2v-1.2Z"
+                            clip-rule="evenodd"></path>
+                        <path
+                            d="M7.92 7.08a.6.6 0 0 1 .6-.6h10.8a.6.6 0 1 1 0 1.2H8.52a.6.6 0 0 1-.6-.6Zm.6 4.2a.6.6 0 1 0 0 1.2h10.8a.6.6 0 1 0 0-1.2H8.52Zm0 4.8a.6.6 0 1 0 0 1.2h10.8a.6.6 0 1 0 0-1.2H8.52Z"></path>
+                        <path
+                            fill-rule="evenodd"
+                            d="M3.72 11.28a.6.6 0 0 1 .6-.6h1.2a.6.6 0 0 1 .6.6v1.2a.6.6 0 0 1-.6.6h-1.2a.6.6 0 0 1-.6-.6v-1.2Zm.6 0h1.2v1.2h-1.2v-1.2Zm0 4.2a.6.6 0 0 0-.6.6v1.2a.6.6 0 0 0 .6.6h1.2a.6.6 0 0 0 .6-.6v-1.2a.6.6 0 0 0-.6-.6h-1.2Zm1.2.6h-1.2v1.2h1.2v-1.2Z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                    <h2>Tasks</h2>
+                </div>
+                <input type="search" name="project" id="projectSearch" placeholder="Search" />
+                <button id="create_task">Create Task</button>
+            </div>
+            <p>Get ready to tackle all the tasks you're working on!</p>
+            <dialog id="task_dialog" class="project__dialog">
+                <form action="." method="post" id="add_project">
+                    <div>
+                        <input type="text" name="task" id="task" placeholder="The task...." />
+                        <input type="date" name="date" id="date" placeholder="Date" />
+                    </div>
+                    <select name="project" id="project_select">
+                        <option value="" disabled selected>Choose the project</option>
+                    </select>
+                    <div>
+                        <button id="create_task_btn" class="cproject__btn">Create</button>
+                        <button id="cancel_task_btn" class="cancel__project">Cancel</button>
+                    </div>
+                </form>
+            </dialog>
+        </div>
+    `;
+}
 
 function projectElem(data) {
     if (!data) return "";
@@ -113,20 +154,31 @@ function projectElem(data) {
 `;
 }
 
-function taskElem() {}
+function taskElem(data) {
+    if (!data) return "";
+
+    const project = storage.get("project").filter(item => item.id == data.project)[0]
+    return `
+    <div class="project">
+        <div>
+            <h3>${data.task}</h3>
+            <p>${data.date}</p>
+        </div>
+        <p>${project.name}</p>
+    </div>
+    `;
+}
 
 function Project(name, description, date) {
-    this.id = Project.count;
-    Project.count++;
+    this.id = Date.now()
     this.name = name;
     this.description = description;
     this.date = date;
 }
-Project.count = 0;
 
 // Project Modal
 
-(function modalSetup() {
+function projectmodalSetup() {
     const cProjectBtn = document.getElementById("createProject");
     const projectDialog = document.getElementById("project_dialog");
     const create_project = document.getElementById("create_project_btn");
@@ -141,8 +193,7 @@ Project.count = 0;
             projectDialog.close();
             e.preventDefault();
             handleForm(Project, "project", "name", "description", "date");
-            display(projectHeader, "project", projectElem);
-            modalSetup();
+            display(projectHeader, "project", projectElem, projectmodalSetup);
         });
     }
 
@@ -152,15 +203,58 @@ Project.count = 0;
             projectDialog.close();
         });
     }
-})()
+}
+
+function Task(task, date, project) {
+    this.task = task
+    this.date = date
+    this.project = project
+}
+
+function taskModalSetup() {
+    const createTask = document.getElementById("create_task");
+    const taskDialog = document.getElementById("task_dialog");
+    const createTaskBtn = document.getElementById("create_task_btn");
+    const cancelTaskBtn = document.getElementById("cancel_task_btn");
+    const select = document.getElementById("project_select")
+
+    createTask.addEventListener("click", (e) => {
+        if (!taskDialog.open) taskDialog.showModal();
+    });
+
+    if (select) {
+        let projects = storage.get("project")
+        select.append(...projects.map((project) => {
+            const opt = document.createElement("option")
+            opt.value = project.id
+            opt.textContent = project.name
+            return opt
+        }))
+    }
+    if (createTaskBtn) {
+        createTaskBtn.addEventListener("click", (e) => {
+            taskDialog.close();
+            e.preventDefault();
+            handleForm(Task, "task", "task", "date", "project");
+            display(taskHeader, "task", taskElem, taskModalSetup);
+        });
+    }
+
+    if (cancelTaskBtn) {
+        cancelTaskBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            taskDialog.close();
+        });
+    }
+}
 
 function asideBtn() {
     const projectBtn = document.getElementById("projectBtn");
     const taskBtn = document.getElementById("taskBtn");
-    
-    projectBtn.addEventListener("click", (e) => display(projectHeader, "project", projectElem))
-    taskBtn.addEventListener("click", (e) => display(taskHeader, "task", taskElem))
-};
+
+    projectBtn.addEventListener("click", (e) => display(projectHeader, "project", projectElem, projectmodalSetup));
+    taskBtn.addEventListener("click", (e) => display(taskHeader, "task", taskElem, taskModalSetup));
+}
 
 // Local Storage and Form Handling
 

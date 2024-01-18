@@ -22,6 +22,7 @@ aside {
     padding: 1rem;
     width: 3rem;
     transition: width 1.5s ease;
+    overflow: hidden;
 }
 
 aside:hover {
@@ -168,7 +169,7 @@ dialog {
     padding: 1.5rem;
 }
 
-dialog input {
+dialog input, select, option {
     padding: 0.25rem;
 }
 
@@ -189,7 +190,7 @@ dialog button {
     margin-bottom: 0.5rem;
 }
 
-.project__dialog input {
+.project__dialog input, select, option {
     width: 100%;
 }
 
