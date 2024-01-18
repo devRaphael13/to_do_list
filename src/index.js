@@ -1,3 +1,4 @@
+import "./styles.css";
 const container = document.getElementById("container");
 const main = document.getElementById("main");
 const section = document.getElementById("section");
